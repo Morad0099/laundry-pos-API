@@ -46,6 +46,6 @@ const app = new Elysia()
 }))
   .use(authRoutes)  // Public routes without /api prefix
   .use(protectedRoutes)  // Protected routes under /api
-  .listen(3000);
+  .listen(3013);
 
 console.log(`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`);
