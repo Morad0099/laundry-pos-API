@@ -1,4 +1,4 @@
-export type OrderStatus = 'pending' | 'processing' | 'completed' | 'cancelled';
+import { Types } from "mongoose";
 
 export interface Customer {
   _id: string;
@@ -14,11 +14,42 @@ export interface RevenueChartData {
   value: number;
 }
 
+export interface OrderInterface {
+  _id: Types.ObjectId;
+  orderNumber: string;
+  customer: Types.ObjectId | Customer;
+  orderDate: Date;
+  orderItems: OrderItem[];
+  totalAmount: number;
+  receivedBy: string;
+  invoiceNumber: string;
+  status: OrderStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ActivityItem {
+  type: 'order' | 'payment' | 'user' | 'alert';
+  message: string;
+  time: string;
+}
+
+export type OrderStatus = 'DELIVERED' | 'PICKED-UP' | 'IN-PROCESS' | 'CANCELLED';
+
+export interface OrderItem {
+  _id: Types.ObjectId; 
+  item: string;
+  description: string;
+  quantity: number;
+  price: number;
+  amount: number;
+}
+
 export interface OrderStats {
-  completed: number;
-  pending: number;
-  processing: number;
-//   cancelled: number;
+  'IN-PROCESS': number;
+  'PICKED-UP': number;
+  'DELIVERED': number;
+  'CANCELLED': number;
 }
 
 export interface RecentOrder {
@@ -27,15 +58,10 @@ export interface RecentOrder {
     name: string;
     phone: string;
   };
-  amount: number;
+  totalAmount: number;
   status: OrderStatus;
   createdAt: string;
-}
-
-export interface ActivityItem {
-  type: 'order' | 'payment' | 'user' | 'alert';
-  message: string;
-  time: string;
+  orderItems: OrderItem[];
 }
 
 export interface DashboardStats {

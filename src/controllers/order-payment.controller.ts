@@ -74,18 +74,17 @@ export class OrderPaymentController {
 
   async updateOrderStatus(orderId: string, status: string): Promise<ApiResponse<any>> {
     try {
-      // Validate status
-      const validStatuses = ['pending', 'processing', 'completed'];
-      if (!validStatuses.includes(status.toLowerCase())) {
+      const validStatuses = ['DELIVERED', 'PICKED-UP', 'IN-PROCESS', 'CANCELLED'];
+      if (!validStatuses.includes(status)) {
         return ResponseHandler.error(
-          'Invalid status value. Must be one of: pending, processing, completed',
+          'Invalid status value. Must be one of: DELIVERED, PICKED-UP, IN-PROCESS, CANCELLED',
           400
         );
       }
 
       const order = await OrderModel.findByIdAndUpdate(
         orderId,
-        { status: status.toLowerCase() }, // Ensure lowercase
+        { status },
         { new: true, runValidators: true }
       );
       
@@ -112,17 +111,17 @@ export class OrderPaymentController {
 
   async bulkUpdateOrderStatus(orderIds: string[], status: string): Promise<ApiResponse<any>> {
     try {
-      const validStatuses = ['pending', 'processing', 'completed'];
-      if (!validStatuses.includes(status.toLowerCase())) {
+      const validStatuses = ['DELIVERED', 'PICKED-UP', 'IN-PROCESS', 'CANCELLED'];
+      if (!validStatuses.includes(status)) {
         return ResponseHandler.error(
-          'Invalid status value. Must be one of: pending, processing, completed',
+          'Invalid status value. Must be one of: DELIVERED, PICKED-UP, IN-PROCESS, CANCELLED',
           400
         );
       }
 
       const result = await OrderModel.updateMany(
         { _id: { $in: orderIds } },
-        { $set: { status: status.toLowerCase() } },
+        { $set: { status } },
         { runValidators: true }
       );
 

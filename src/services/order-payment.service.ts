@@ -15,14 +15,18 @@ export class OrderPaymentService {
     data: CreateOrderPaymentDTO
   ): Promise<{ order: OrderDocument; payment: PaymentDocument }> {
     try {
-      // Create order first
+      // Calculate the outstanding balance correctly
+      const outstandingBalance = data.amountPaid - data.totalAmount;
+
+      // Create order with payment details
       const order = await this.orderService.create({
         customerId: data.customerId,
         orderDate: data.orderDate,
-        description: data.description,
-        quantity: data.quantity,
-        price: data.price,
-        amount: data.amount,
+        orderItems: data.orderItems,
+        totalAmount: data.totalAmount,
+        amountPaid: data.amountPaid,
+        outstandingBalance: outstandingBalance,
+        paymentMethod: data.paymentMethod || 'cash',
         receivedBy: data.receivedBy
       });
 
@@ -31,16 +35,15 @@ export class OrderPaymentService {
         throw new Error('Failed to create order with valid ID');
       }
 
-      // Then create payment
+      // Create the payment record
       const payment = await this.paymentService.create({
-        order: order._id as unknown as string, // Type assertion here
+        order: order._id as unknown as string,
         customer: data.customerId,
-        amount: data.cash,
+        amount: data.amountPaid,
         paymentMethod: data.paymentMethod || 'cash',
         reference: data.reference
       });
 
-      // Get the full order with populated fields
       const populatedOrder = await this.orderService.findById(order._id as unknown as string);
       
       if (!populatedOrder) {

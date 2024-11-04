@@ -49,21 +49,19 @@ export class OrderService {
 
   async create(orderData: CreateOrderDTO) {
     try {
-      // Generate numbers first
       const [orderNumber, invoiceNumber] = await Promise.all([
         this.generateOrderNumber(),
         this.generateInvoiceNumber()
       ]);
 
-      // Create and save the order
       const order = new OrderModel({
         ...orderData,
         customer: new mongoose.Types.ObjectId(orderData.customerId),
         orderNumber,
-        invoiceNumber
+        invoiceNumber,
+        status: 'IN-PROCESS' // Set default status
       });
 
-      // Save and populate in one step
       const savedOrder = await order.save();
       return await OrderModel.findById(savedOrder._id)
         .populate('customer')

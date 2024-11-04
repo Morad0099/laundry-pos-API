@@ -5,12 +5,16 @@ import { PaymentDocument } from "../models/payment.model";
 export interface CreateOrderPaymentDTO {
   customerId: string;
   orderDate: Date;
-  description: string;
-  quantity: number;
-  price: number;
-  amount: number;
+  orderItems: {
+    item: string;
+    description: string;
+    quantity: number;
+    price: number;
+    amount: number;
+  }[];
+  totalAmount: number;
   receivedBy: string;
-  cash: number;
+  amountPaid: number;
   paymentMethod?: 'cash' | 'bank' | 'mobile_money';
   reference?: string;
 }

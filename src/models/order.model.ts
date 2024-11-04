@@ -1,17 +1,23 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 import { OrderInterface } from '../types/order.types';
 
-interface IOrder {
-  orderNumber: string;
-  customer: mongoose.Types.ObjectId;
-  orderDate: Date;
+interface OrderItem {
+  item: string;
   description: string;
   quantity: number;
   price: number;
   amount: number;
+}
+
+interface IOrder {
+  orderNumber: string;
+  customer: mongoose.Types.ObjectId;
+  orderDate: Date;
+  orderItems: OrderItem[];
+  totalAmount: number;
   receivedBy: string;
   invoiceNumber: string;
-  status: 'pending' | 'completed' | 'cancelled'| 'processing';
+  status: 'DELIVERED' | 'PICKED-UP' | 'IN-PROCESS' | 'CANCELLED';
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -19,6 +25,33 @@ interface IOrder {
 export interface OrderDocument extends Document, OrderInterface {
   _id: mongoose.Types.ObjectId;
 }
+
+const OrderItemSchema = new Schema<OrderItem>({
+  item: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  description: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  quantity: {
+    type: Number,
+    required: true,
+    min: [1, 'Quantity must be at least 1']
+  },
+  price: {
+    type: Number,
+    required: true,
+    min: [0, 'Price cannot be negative']
+  },
+  amount: {
+    type: Number,
+    required: true
+  }
+});
 
 const OrderSchema = new Schema<OrderInterface, IOrder>(
   {
@@ -37,23 +70,48 @@ const OrderSchema = new Schema<OrderInterface, IOrder>(
       required: true,
       default: Date.now
     },
-    description: {
+    orderItems: [{
+      item: {
+        type: String,
+        required: true
+      },
+      description: {
+        type: String,
+        required: true
+      },
+      quantity: {
+        type: Number,
+        required: true,
+        min: 1
+      },
+      price: {
+        type: Number,
+        required: true,
+        min: 0
+      },
+      amount: {
+        type: Number,
+        required: true
+      }
+    }],
+    totalAmount: {
+      type: Number,
+      required: true,
+      min: 0
+    },
+    amountPaid: {  
+      type: Number,
+      required: true,
+      min: 0
+    },
+    outstandingBalance: {
+      type: Number,
+      required: true,
+      default: 0
+    },
+    paymentMethod: {
       type: String,
-      required: true,
-      trim: true
-    },
-    quantity: {
-      type: Number,
-      required: true,
-      min: [1, 'Quantity must be at least 1']
-    },
-    price: {
-      type: Number,
-      required: true,
-      min: [0, 'Price cannot be negative']
-    },
-    amount: {
-      type: Number,
+      enum: ['cash', 'bank', 'mobile_money'],
       required: true
     },
     receivedBy: {
@@ -68,8 +126,8 @@ const OrderSchema = new Schema<OrderInterface, IOrder>(
     },
     status: {
       type: String,
-      enum: ['pending', 'processing', 'completed'], 
-      default: 'pending'
+      enum: ['DELIVERED', 'PICKED-UP', 'IN-PROCESS', 'CANCELLED'],
+      default: 'IN-PROCESS'
     }
   },
   {
@@ -77,5 +135,6 @@ const OrderSchema = new Schema<OrderInterface, IOrder>(
     versionKey: false
   }
 );
+
 
 export const OrderModel = mongoose.model<OrderInterface>('Order', OrderSchema);

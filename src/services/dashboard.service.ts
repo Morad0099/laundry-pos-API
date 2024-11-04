@@ -12,59 +12,64 @@ import type {
 export class DashboardService {
   async getDashboardStats(dateRange?: string): Promise<DashboardStats> {
     try {
-      // Get total customers
       const totalCustomers = await CustomerModel.countDocuments();
 
-      // Get order stats
       const allOrders = await OrderModel.find()
         .populate<{ customer: Customer }>('customer')
         .sort({ createdAt: -1 });
 
-      const pendingOrders = allOrders.filter(order => order.status === 'pending').length;
-      const completedOrders = allOrders.filter(order => order.status === 'completed').length;
-      const processingOrders = allOrders.filter(order => order.status === 'processing').length;
+      const orderStats = {
+        'IN-PROCESS': allOrders.filter(order => order.status === 'IN-PROCESS').length,
+        'PICKED-UP': allOrders.filter(order => order.status === 'PICKED-UP').length,
+        'DELIVERED': allOrders.filter(order => order.status === 'DELIVERED').length,
+        'CANCELLED': allOrders.filter(order => order.status === 'CANCELLED').length
+      };
 
-      // Calculate total revenue
-      const totalRevenue = allOrders.reduce((sum, order) => sum + order.amount, 0);
+      // Calculate total revenue from order items
+      const totalRevenue = allOrders.reduce((sum, order) => 
+        sum + (order.totalAmount || 0), 0);
 
       // Get revenue chart data
       const today = new Date();
       const revenueData = await this.getRevenueChartData(today, dateRange);
 
-      // Get recent orders
+      // Get recent orders with new structure
       const recentOrders: RecentOrder[] = allOrders.slice(0, 5).map(order => ({
         orderNumber: order.orderNumber,
         customer: {
-          name: order.customer.name,
-          phone: order.customer.phone
+          name: (order.customer as Customer).name,
+          phone: (order.customer as Customer).phone
         },
-        amount: order.amount,
+        totalAmount: order.totalAmount,
         status: order.status,
-        createdAt: order.createdAt.toISOString()
+        createdAt: order.createdAt?.toISOString() ?? new Date().toISOString(),
+        orderItems: order.orderItems.map(item => ({
+          _id: item._id,
+          item: item.item,
+          description: item.description,
+          quantity: item.quantity,
+          price: item.price,
+          amount: item.amount
+        }))
       }));
-
-      // Get recent activity
-      const recentActivity = await this.getRecentActivity();
 
       return {
         totalOrders: allOrders.length,
         totalRevenue,
         totalCustomers,
-        pendingOrders,
+        pendingOrders: orderStats['IN-PROCESS'],
         revenueChart: revenueData,
-        orderStats: {
-          completed: completedOrders,
-          pending: pendingOrders,
-          processing: processingOrders,
-        },
+        orderStats,
         recentOrders,
-        recentActivity
+        recentActivity: await this.getRecentActivity()
       };
     } catch (error) {
       console.error('Error getting dashboard stats:', error);
       throw error;
     }
   }
+
+
 
   private async getRevenueChartData(today: Date, dateRange = 'week'): Promise<RevenueChartData[]> {
     let startDate: Date;
@@ -91,10 +96,10 @@ export class DashboardService {
       createdAt: { $gte: startDate, $lte: endDate }
     });
 
-    // Group orders by date and sum amounts
     const revenueByDate = orders.reduce((acc, order) => {
-      const date = new Date(order.createdAt).toISOString().split('T')[0];
-      acc[date] = (acc[date] || 0) + order.amount;
+      const date = order.createdAt?.toISOString().split('T')[0] ?? 
+                  new Date().toISOString().split('T')[0];
+      acc[date] = (acc[date] || 0) + (order.totalAmount || 0);
       return acc;
     }, {} as Record<string, number>);
 
@@ -112,8 +117,8 @@ export class DashboardService {
 
     return recentOrders.map(order => ({
       type: 'order',
-      message: `New order #${order.orderNumber} from ${order.customer.name}`,
-      time: order.createdAt.toISOString()
+      message: `New order #${order.orderNumber} from ${(order.customer as Customer).name}`,
+      time: order.createdAt?.toISOString() ?? new Date().toISOString()
     }));
   }
 }
