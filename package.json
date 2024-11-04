@@ -3,12 +3,20 @@
   "version": "1.0.50",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "generate-secrets": "bun run src/scripts/generate-secrets.ts",
     "dev": "bun run --watch src/index.ts"
   },
   "dependencies": {
-    "elysia": "latest"
+    "@elysiajs/cors": "^1.1.1",
+    "@types/mongoose": "^5.11.97",
+    "bcrypt": "^5.1.1",
+    "elysia": "latest",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.8.0"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.7",
     "bun-types": "latest"
   },
   "module": "src/index.js"
