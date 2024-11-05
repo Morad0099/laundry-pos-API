@@ -32,16 +32,16 @@ const AdminSchema = new Schema<AdminInterface>(
       select: false, // This will exclude password by default in queries
     },
     refreshToken: {
-        type: String,
-        select: false
+      type: String,
+      select: false,
     },
     passwordResetToken: {
-        type: String,
-        select: false
+      type: String,
+      select: false,
     },
     passwordResetExpires: {
-        type: Date,
-        select: false
+      type: Date,
+      select: false,
     },
   },
   {
@@ -51,12 +51,14 @@ const AdminSchema = new Schema<AdminInterface>(
 );
 
 // Method to compare password
-AdminSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
-    try {
-        return await bcrypt.compare(candidatePassword, this.password);
-    } catch (error) {
-        throw new Error('Error comparing passwords');
-    }
+AdminSchema.methods.comparePassword = async function (
+  candidatePassword: string
+): Promise<boolean> {
+  try {
+    return await bcrypt.compare(candidatePassword, this.password);
+  } catch (error) {
+    throw new Error("Error comparing passwords");
+  }
 };
 
 export const AdminModel = mongoose.model<AdminInterface>("Admin", AdminSchema);
