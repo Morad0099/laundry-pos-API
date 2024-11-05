@@ -4,7 +4,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "generate-secrets": "bun run src/scripts/generate-secrets.ts",
-    "dev": "bun run --watch src/index.ts"
+    "dev": "bun run --watch src/index.ts",
+    "prod": "rm -rf build/ && bun build ./src/index.ts --target=bun --outfile=./build/index.js",
+    "start": "pm2 start -n laundry-pos -i 1 --interpreter ~/.bun/bin/bun build/index.js",
+    "restart": "pm2 restart laundry-pos"
   },
   "dependencies": {
     "@elysiajs/cors": "^1.1.1",
