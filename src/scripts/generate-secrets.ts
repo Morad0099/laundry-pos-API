@@ -6,7 +6,8 @@ const generateSecret = () => crypto.randomBytes(64).toString('hex');
 const secrets = {
     JWT_ACCESS_SECRET: generateSecret(),
     JWT_REFRESH_SECRET: generateSecret(),
-    PASSWORD_RESET_SECRET: generateSecret()
+    PASSWORD_RESET_SECRET: generateSecret(),
+    JWT_REFRESH_EXPIRY: '1h'
 };
 
 // Create .env format
