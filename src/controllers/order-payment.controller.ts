@@ -3,7 +3,7 @@ import { OrderPaymentService } from '../services/order-payment.service';
 import type { CreateOrderPaymentDTO } from '../types/order-payment.types';
 import { ResponseHandler } from '../utils/response.handler';
 import type { ApiResponse, ApiError } from '../types/response.types';
-import { OrderInterface } from '../types/order.types';
+import { CreateOrderDTO, OrderInterface, OrderUpdateDTO } from '../types/order.types';
 import { OrderModel } from '../models/order.model';
 
 export class OrderPaymentController {
@@ -135,6 +135,44 @@ export class OrderPaymentController {
         'Error updating orders status',
         500,
         (error as ApiError).message
+      );
+    }
+  }
+
+  async updateOrder(
+    orderId: string, 
+    orderData: OrderUpdateDTO
+  ): Promise<ApiResponse<any>> {
+    try {
+      const updatedOrder = await this.orderPaymentService.updateOrder(
+        orderId, 
+        orderData
+      );
+      
+      return ResponseHandler.success(
+        updatedOrder,
+        'Order updated successfully'
+      );
+    } catch (error) {
+      const err = error as Error;
+      return ResponseHandler.error(
+        'Error updating order',
+        500,
+        err.message
+      );
+    }
+  }
+
+  async getOrderById(orderId: string): Promise<ApiResponse<any>> {
+    try {
+      const order = await this.orderPaymentService.getOrderById(orderId);
+      return ResponseHandler.success(order, 'Order retrieved successfully');
+    } catch (error) {
+      const err = error as Error;
+      return ResponseHandler.error(
+        'Error retrieving order',
+        500,
+        err.message
       );
     }
   }

@@ -6,13 +6,18 @@ import { OrderPaymentService } from '../services/order-payment.service';
 import { OrderPaymentController } from '../controllers/order-payment.controller';
 import { CreateOrderPaymentDTO } from '../types/order-payment.types';
 import { createProtectedRoute } from '../middleware/setup.middleware';
+import { OrderUpdateDTO } from '../types/order.types';
 
 // Initialize services and controller
 const orderService = new OrderService();
 const paymentService = new PaymentService();
 const orderPaymentService = new OrderPaymentService(orderService, paymentService);
 const orderPaymentController = new OrderPaymentController(orderPaymentService);
-
+const PaymentMethodEnum = t.Enum({
+  cash: 'cash',
+  bank: 'bank',
+  mobile_money: 'mobile_money'
+});
 // Create protected router
 const router = new Elysia(); // Optional: add prefix for all routes
 
@@ -24,6 +29,37 @@ export const orderRoutes = createProtectedRoute(router)
   .get('/orders/get', async () => {
     return await orderPaymentController.getAllOrders();
   })
+  .get('/orders/get/:orderId', async ({ params: { orderId } }) => {
+    return await orderPaymentController.getOrderWithPayment(orderId);
+  })
+  .put('/orders/update/:id',
+    async ({ params: { id }, body }) => {
+      // Cast the body to OrderUpdateDTO since we've validated it
+      return await orderPaymentController.updateOrder(id, body as OrderUpdateDTO);
+    },
+    {
+      params: t.Object({
+        id: t.String()
+      }),
+      body: t.Object({
+        orderDate: t.Optional(t.String()),
+        orderItems: t.Optional(t.Array(
+          t.Object({
+            item: t.String(),
+            description: t.String(),
+            quantity: t.Number(),
+            price: t.Number(),
+            amount: t.Number()
+          })
+        )),
+        totalAmount: t.Optional(t.Number()),
+        amountPaid: t.Optional(t.Number()),
+        outstandingBalance: t.Optional(t.Number()),
+        paymentMethod: t.Optional(PaymentMethodEnum),
+        receivedBy: t.Optional(t.String())
+      })
+    }
+  )
   .get('/orders/get/:orderId', async ({ params: { orderId } }) => {
     return await orderPaymentController.getOrderWithPayment(orderId);
   })
@@ -52,66 +88,5 @@ export const orderRoutes = createProtectedRoute(router)
       })
     }
   );
-
-// // Type validation for request body
-// const createOrderSchema = {
-//   body: {
-//     type: 'object',
-//     properties: {
-//       customerId: { type: 'string' },
-//       orderDate: { type: 'string', format: 'date-time' },
-//       description: { type: 'string' },
-//       quantity: { type: 'number', minimum: 1 },
-//       price: { type: 'number', minimum: 0 },
-//       amount: { type: 'number', minimum: 0 },
-//       receivedBy: { type: 'string' },
-//       cash: { type: 'number', minimum: 0 },
-//       paymentMethod: { 
-//         type: 'string', 
-//         enum: ['cash', 'bank', 'mobile_money'],
-//         default: 'cash'
-//       },
-//       reference: { type: 'string', optional: true }
-//     },
-//     required: ['customerId', 'description', 'quantity', 'price', 'amount', 'receivedBy', 'cash']
-//   }
-// };
-
-// // Create a version with request validation
-// export const validatedOrderRoutes = createProtectedRoute(router)
-//   .post('/orders', 
-//     {
-//       body: createOrderSchema.body,
-//       error: ({ code, error }) => {
-//         return {
-//           status: false,
-//           message: `Validation error: ${error.message}`,
-//           code,
-//           error: error.message
-//         };
-//       }
-//     },
-//     async ({ body }) => {
-//       const orderData = body as CreateOrderPaymentDTO;
-//       return await orderPaymentController.createOrderWithPayment(orderData);
-//     }
-//   )
-//   .get('/orders', async () => {
-//     return await orderPaymentController.getAllOrders();
-//   })
-//   .get('/orders/:orderId', 
-//     {
-//       params: {
-//         type: 'object',
-//         properties: {
-//           orderId: { type: 'string', minLength: 24, maxLength: 24 }
-//         },
-//         required: ['orderId']
-//       }
-//     },
-//     async ({ params: { orderId } }) => {
-//       return await orderPaymentController.getOrderWithPayment(orderId);
-//     }
-//   );
 
 export default orderRoutes;

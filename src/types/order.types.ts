@@ -62,3 +62,19 @@ export interface CreateOrderDTO {
   paymentMethod: 'cash' | 'bank' | 'mobile_money';
   receivedBy: string;
 }
+
+export interface OrderUpdateDTO {
+  orderDate?: string;
+  orderItems?: {
+    item: string;
+    description: string;
+    quantity: number;
+    price: number;
+    amount: number;
+  }[];
+  totalAmount?: number;
+  receivedBy?: string;
+  amountPaid?: number;
+  outstandingBalance?: number;
+  paymentMethod?: 'cash' | 'bank' | 'mobile_money';
+}
