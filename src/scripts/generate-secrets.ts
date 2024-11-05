@@ -7,7 +7,8 @@ const secrets = {
     JWT_ACCESS_SECRET: generateSecret(),
     JWT_REFRESH_SECRET: generateSecret(),
     PASSWORD_RESET_SECRET: generateSecret(),
-    JWT_REFRESH_EXPIRY: '1h'
+    JWT_REFRESH_EXPIRY: '24h',
+    JWT_ACCESS_EXPIRY: '1h'
 };
 
 // Create .env format
