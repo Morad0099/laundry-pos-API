@@ -13,8 +13,8 @@ const createAdmin = async () => {
       throw Error("Error creating admin");
     }
   } catch (err) {
-    console.log("admin error");
+    console.log("admin error", err);
   }
 };
 
-export default createAdmin;
+createAdmin();

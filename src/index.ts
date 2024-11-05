@@ -7,7 +7,6 @@ import { authRoutes, protectedAuthRoutes } from "./routes/auth.routes";
 import { cors } from "@elysiajs/cors";
 import orderRoutes from "./routes/orders.routes";
 import { dashboardRoutes } from "./routes/dashboard.routes";
-import createSuperAdmin from "./utils/createSuperAdmin";
 
 if (!process.env.JWT_ACCESS_SECRET) {
   console.error("JWT_ACCESS_SECRET is not set");
@@ -53,8 +52,6 @@ const start = async () => {
     .use(authRoutes) // Public routes without /api prefix
     .use(protectedRoutes) // Protected routes under /api
     .listen(3013);
-
-  await createSuperAdmin();
 
   console.log(
     `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
